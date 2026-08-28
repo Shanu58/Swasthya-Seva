@@ -1,0 +1,43 @@
+name: swasthya_seva
+description: "Swasthya Seva - AI-powered medicine verification and safety platform for rural India (SIH 2026)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Networking (talks to the FastAPI backend once connected)
+  http: ^1.2.1
+
+  # Date formatting (expiry dates, added-on dates)
+  intl: ^0.19.0
+
+  # Local persistence (selected language, guest session)
+  shared_preferences: ^2.2.3
+
+  # Camera / gallery image capture for medicine scanning
+  image_picker: ^1.1.2
+
+  # On-device text-to-speech used as the default VoiceService
+  # implementation. Swap this out for a SaarasVoiceService /
+  # SarvamVoiceService later without touching any screen code -
+  # see lib/services/voice_service.dart.
+  flutter_tts: ^4.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # assets:
+  #   - assets/images/
