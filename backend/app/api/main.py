@@ -14,6 +14,13 @@ from app.api.routes.interaction_check import (
 from app.api.routes.users import router as users_router
 from app.api.routes.scan_history import router as scan_history_router
 
+from app.api.routes.medicine_search import (
+    router as medicine_search_router,
+)
+
+from app.api.routes.medicine_image_search import (
+    router as medicine_image_search_router,
+)
 
 app = FastAPI(
     title="Swasthya Seva API",
@@ -28,10 +35,12 @@ app.include_router(drug_interactions_router)
 app.include_router(interaction_check_router)
 app.include_router(users_router)
 app.include_router(scan_history_router)
-
+app.include_router(medicine_search_router)
+app.include_router(medicine_image_search_router)
 
 @app.get("/")
 def root():
     return {
         "message": "Swasthya Seva API is running"
     }
+
