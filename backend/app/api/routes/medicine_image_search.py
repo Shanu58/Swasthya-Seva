@@ -27,25 +27,32 @@ async def search_medicine_from_image(
     image: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    allowed_types = [
+    allowed_types = {
         "image/jpeg",
         "image/jpg",
         "image/png",
         "image/webp",
-    ]
+    }
+    allowed_suffixes = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+    }
 
-    if image.content_type not in allowed_types:
+    suffix = Path(image.filename or "").suffix.lower()
+
+    # Some desktop/mobile image pickers send application/octet-stream
+    # even when the selected file is a valid image. Accept known image
+    # extensions in that case instead of rejecting a valid scan.
+    if image.content_type not in allowed_types and suffix not in allowed_suffixes:
         raise HTTPException(
             status_code=400,
             detail=(
-                "Only JPG, JPEG, PNG, "
-                "and WEBP images are allowed."
+                "Only JPG, JPEG, PNG, and WEBP images are allowed. "
+                f"Received content type: {image.content_type!r}."
             ),
         )
-
-    suffix = Path(
-        image.filename or ""
-    ).suffix
 
     if not suffix:
         suffix = ".jpg"
@@ -59,6 +66,12 @@ async def search_medicine_from_image(
         )
 
         contents = await image.read()
+
+        if not contents:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded image is empty.",
+            )
 
         temp_file.write(contents)
         temp_file.close()
@@ -78,17 +91,13 @@ async def search_medicine_from_image(
                     "id": medicine.id,
                     "name": medicine.name,
                     "score": match["score"],
-                    "matched_text": (
-                        match["matched_text"]
-                    ),
+                    "matched_text": match["matched_text"],
                 }
             )
 
         return {
             "success": True,
-            "ocr_candidates": (
-                result["candidates"]
-            ),
+            "ocr_candidates": result["candidates"],
             "matches": matches,
         }
 
@@ -97,7 +106,4 @@ async def search_medicine_from_image(
             temp_file is not None
             and Path(temp_file.name).exists()
         ):
-            Path(
-                temp_file.name
-            ).unlink()
-
+            Path(temp_file.name).unlink()
