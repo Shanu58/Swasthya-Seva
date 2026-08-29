@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../core/constants/app_constants.dart';
 import '../models/medicine_model.dart';
 import '../models/medicine_detail_model.dart';
@@ -18,12 +19,33 @@ class ApiService {
   Future<Medicine> identifyMedicine(File imageFile) async {
     if (AppConstants.useMockData) return _mock.mockIdentify();
 
+    final extension = imageFile.path.split('.').last.toLowerCase();
+    final MediaType contentType;
+    switch (extension) {
+      case 'png':
+        contentType = MediaType('image', 'png');
+        break;
+      case 'webp':
+        contentType = MediaType('image', 'webp');
+        break;
+      case 'jpg':
+      case 'jpeg':
+      default:
+        contentType = MediaType('image', 'jpeg');
+    }
+
     final request = http.MultipartRequest(
       'POST',
       _uri('/medicine-image-search/'),
-    )..files.add(
-        await http.MultipartFile.fromPath('image', imageFile.path),
-      );
+    );
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'image',
+        imageFile.path,
+        contentType: contentType,
+      ),
+    );
 
     final streamed = await request.send().timeout(AppConstants.apiTimeout);
     final response = await http.Response.fromStream(streamed);
