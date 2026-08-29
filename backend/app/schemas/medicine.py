@@ -31,3 +31,10 @@ class MedicineIngredientDetail(BaseModel):
 
 class MedicineDetailResponse(MedicineResponse):
     ingredients: list[MedicineIngredientDetail]
+    active_ingredients: list[str] = []
+    usage: str = "Not available"
+    dosage: str = "Follow the directions on the label or advice from your doctor or pharmacist."
+    food_guidance: str = "Follow label instructions and consult a healthcare professional if unsure."
+    warnings: list[str] = []
+    interaction_warnings: list[str] = []
+    data_source: str = "local_dataset"
