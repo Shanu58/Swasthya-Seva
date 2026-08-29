@@ -303,7 +303,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               SecondaryActionButton(
                 label: 'Sign In',
                 icon: Icons.login_rounded,
-                isLoading: _isLoading,
                 onPressed: _isLoading
                     ? null
                     : _signIn,
@@ -315,7 +314,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 label: 'Continue as Guest',
                 icon:
                     Icons.arrow_forward_rounded,
-                isLoading: _isLoading,
                 onPressed: _isLoading
                     ? null
                     : _continueAsGuest,
