@@ -1,0 +1,9 @@
+{
+  "name": "Swasthya Seva",
+  "short_name": "Swasthya Seva",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "description": "AI-powered medicine verification and safety platform"
+}
