@@ -17,7 +17,9 @@ class AppUser {
     required this.createdAt,
   });
 
-  factory AppUser.fromJson(Map<String, dynamic> json) {
+  factory AppUser.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return AppUser(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -29,7 +31,19 @@ class AppUser {
       weightKg: json['weight_kg'] != null
           ? (json['weight_kg'] as num).toDouble()
           : null,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: DateTime.parse(
+        json['created_at'] as String,
+      ),
     );
+  }
+
+  Map<String, dynamic> toCreateJson() {
+    return {
+      'name': name,
+      'email': email,
+      'age': age,
+      'height_cm': heightCm,
+      'weight_kg': weightKg,
+    };
   }
 }

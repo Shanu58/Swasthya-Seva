@@ -16,7 +16,7 @@ class AppConstants {
   /// For a physical device on the same network as your dev machine, replace
   /// 10.0.2.2 (Android emulator's alias for host localhost) with your
   /// machine's LAN IP, e.g. http://192.168.1.42:8000
-  static const String apiBaseUrl = 'http://10.0.2.2:8000';
+  static const String apiBaseUrl = 'http://127.0.0.1:8000';
 
   static const Duration apiTimeout = Duration(seconds: 20);
 
@@ -24,7 +24,7 @@ class AppConstants {
   /// entirely against [MockDataService] so the demo works end-to-end today.
   /// Flip this to `false` once the FastAPI backend + DB are reachable -
   /// no screen code needs to change, only this flag.
-  static const bool useMockData = true;
+  static const bool useMockData = false;
 
   static const Duration splashDuration = Duration(seconds: 2);
 }

@@ -7,6 +7,8 @@ class StorageService {
   static const _kLanguageCode = 'selected_language_code';
   static const _kIsGuest = 'is_guest_session';
   static const _kUserName = 'user_name';
+  static const _kUserId = 'user_id';
+  static const _kThemeMode = 'theme_mode';
 
   Future<void> saveLanguageCode(String code) async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,9 +40,28 @@ class StorageService {
     return prefs.getString(_kUserName);
   }
 
+  Future<void> saveUserId(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kUserId, id);
+  }
+
+  Future<int?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_kUserId);
+  }
+Future<void> saveThemeMode(String mode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_kThemeMode, mode);
+}
+
+Future<String?> getThemeMode() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_kThemeMode);
+}
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kIsGuest);
     await prefs.remove(_kUserName);
+    await prefs.remove(_kUserId);
   }
 }

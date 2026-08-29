@@ -6,6 +6,17 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+static const Color darkBackground =
+    Color(0xFF101816);
+
+static const Color darkSurface =
+    Color(0xFF18221F);
+
+static const Color darkTextPrimary =
+    Color(0xFFF2F6F4);
+
+static const Color darkTextSecondary =
+    Color(0xFFB7C3BF);
   static const Color primary = Color(0xFF0B7A75); // teal - trust/health
   static const Color primaryDark = Color(0xFF06544F);
   static const Color secondary = Color(0xFF1F6FEB);
@@ -24,6 +35,90 @@ class AppColors {
 class AppTheme {
   AppTheme._();
 
+static ThemeData get darkTheme {
+  final colorScheme = ColorScheme.fromSeed(
+    brightness: Brightness.dark,
+    seedColor: AppColors.primary,
+    primary: AppColors.primary,
+    secondary: AppColors.secondary,
+    surface: AppColors.darkSurface,
+    error: AppColors.dangerRed,
+  );
+
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: colorScheme,
+    scaffoldBackgroundColor:
+        AppColors.darkBackground,
+    fontFamily: 'Roboto',
+
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkTextPrimary,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkTextPrimary,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w600,
+        color: AppColors.darkTextPrimary,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 17,
+        color: AppColors.darkTextPrimary,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 15,
+        color: AppColors.darkTextSecondary,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor:
+          AppColors.darkSurface,
+      foregroundColor:
+          AppColors.darkTextPrimary,
+      elevation: 0,
+      centerTitle: true,
+    ),
+
+    cardTheme: CardThemeData(
+      color: AppColors.darkSurface,
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(16),
+      ),
+    ),
+
+    inputDecorationTheme:
+        InputDecorationTheme(
+      filled: true,
+      fillColor:
+          AppColors.darkSurface,
+      border: OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(12),
+      ),
+      contentPadding:
+          const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+    ),
+  );
+}
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,

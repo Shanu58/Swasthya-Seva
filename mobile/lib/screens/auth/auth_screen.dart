@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/app_buttons.dart';
 import '../home/home_screen.dart';
@@ -16,7 +15,9 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final _emailController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController();
+
   bool _isLoading = false;
   String? _error;
 
@@ -27,43 +28,203 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _signIn() async {
-    final email = _emailController.text.trim().toLowerCase();
-    if (email.isEmpty || !email.contains('@')) {
-      setState(() => _error = 'Enter a valid email address.');
+    final email = _emailController.text.trim();
+
+    setState(() {
+      _error = null;
+    });
+
+    if (email.isEmpty) {
+      setState(() {
+        _error = 'Please enter your email address.';
+      });
       return;
     }
 
+    if (!email.contains('@')) {
+      setState(() {
+        _error = 'Please enter a valid email address.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final api =
+          ref.read(apiServiceProvider);
+
+      final user =
+          await api.findUserByEmail(email);
+
+      if (user == null) {
+        if (!mounted) return;
+
+        await _showCreateAccountDialog(
+          email,
+        );
+        return;
+      }
+
+      await ref
+          .read(sessionProvider.notifier)
+          .signIn(
+            userId: user.id,
+            userName: user.name,
+          );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error =
+            'Could not connect to the server. Please make sure the backend is running.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _showCreateAccountDialog(
+    String email,
+  ) async {
+    final nameController =
+        TextEditingController();
+
+    final created = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Create Account',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'No account was found for $email.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                textCapitalization:
+                    TextCapitalization.words,
+                decoration:
+                    const InputDecoration(
+                  labelText: 'Your name',
+                  prefixIcon:
+                      Icon(Icons.person_outline),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(
+                  dialogContext,
+                ).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text
+                    .trim()
+                    .isEmpty) {
+                  return;
+                }
+
+                Navigator.of(
+                  dialogContext,
+                ).pop(true);
+              },
+              child: const Text(
+                'Create',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (created != true) return;
+
+    final name =
+        nameController.text.trim();
+
+    try {
+      final api =
+          ref.read(apiServiceProvider);
+
+      final user =
+          await api.createUser(
+        name: name,
+        email: email,
+      );
+
+      await ref
+          .read(sessionProvider.notifier)
+          .signIn(
+            userId: user.id,
+            userName: user.name,
+          );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _error =
+            'Could not create your account. Please try again.';
+      });
+    }
+  }
+
+  Future<void> _continueAsGuest() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final api = ref.read(apiServiceProvider);
-      AppUser? user = await api.findUserByEmail(email);
-
-      if (user == null) {
-        final localPart = email.split('@').first.replaceAll(RegExp(r'[^A-Za-z0-9 ]'), ' ').trim();
-        final name = localPart.isEmpty ? 'Swasthya Seva User' : localPart[0].toUpperCase() + localPart.substring(1);
-        user = await api.createUser(name: name, email: email);
-      }
-
-      await ref.read(sessionProvider.notifier).signIn(
-        userId: user.id,
-        userName: user.name,
-      );
+      await ref
+          .read(sessionProvider.notifier)
+          .continueAsGuest();
 
       if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
       );
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Could not sign in. Make sure the backend is running and reachable.';
-      });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -72,59 +233,94 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding:
+              const EdgeInsets.all(24),
           child: Column(
             children: [
               const Spacer(),
-              const Icon(Icons.health_and_safety_rounded, size: 64, color: AppColors.primary),
+
+              const Icon(
+                Icons.health_and_safety_rounded,
+                size: 64,
+                color: AppColors.primary,
+              ),
+
               const SizedBox(height: 20),
+
               Text(
                 'Welcome to ${AppConstants.appName}',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium,
               ),
+
               const SizedBox(height: 10),
+
               Text(
-                'Sign in with your email to keep your profile connected to your account.',
+                'Scan medicines, verify them, and check important safety information.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium,
               ),
+
               const Spacer(),
+
               TextField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                onSubmitted: (_) => _isLoading ? null : _signIn(),
-                decoration: const InputDecoration(
+                keyboardType:
+                    TextInputType.emailAddress,
+                enabled: !_isLoading,
+                onSubmitted: (_) =>
+                    _signIn(),
+                decoration:
+                    const InputDecoration(
                   labelText: 'Email address',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                  ),
                 ),
               ),
+
               if (_error != null) ...[
                 const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(color: AppColors.dangerRed)),
+
+                Text(
+                  _error!,
+                  textAlign:
+                      TextAlign.center,
+                  style:
+                      const TextStyle(
+                    color:
+                        AppColors.dangerRed,
+                  ),
+                ),
               ],
+
               const SizedBox(height: 14),
-              PrimaryActionButton(
-                label: _isLoading ? 'Signing In...' : 'Sign In',
+
+              SecondaryActionButton(
+                label: 'Sign In',
                 icon: Icons.login_rounded,
                 isLoading: _isLoading,
-                onPressed: _isLoading ? null : _signIn,
-              ),
-              const SizedBox(height: 14),
-              SecondaryActionButton(
-                label: 'Continue as Guest',
-                icon: Icons.arrow_forward_rounded,
                 onPressed: _isLoading
                     ? null
-                    : () async {
-                        await ref.read(sessionProvider.notifier).continueAsGuest();
-                        if (!mounted) return;
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
-                        );
-                      },
+                    : _signIn,
               ),
+
+              const SizedBox(height: 14),
+
+              PrimaryActionButton(
+                label: 'Continue as Guest',
+                icon:
+                    Icons.arrow_forward_rounded,
+                isLoading: _isLoading,
+                onPressed: _isLoading
+                    ? null
+                    : _continueAsGuest,
+              ),
+
               const SizedBox(height: 16),
             ],
           ),

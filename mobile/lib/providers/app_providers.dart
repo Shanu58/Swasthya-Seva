@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_constants.dart';
@@ -71,32 +72,85 @@ final hasSelectedLanguageProvider = FutureProvider<bool>((ref) async {
 
 class SessionState {
   final bool isGuest;
+  final int? userId;
   final String? userName;
-  const SessionState({required this.isGuest, this.userName});
 
-  bool get isSignedIn => isGuest || userName != null;
+  const SessionState({
+    required this.isGuest,
+    this.userId,
+    this.userName,
+  });
+
+  bool get isSignedIn {
+    return isGuest || userId != null;
+  }
+
+  bool get hasRealAccount {
+    return userId != null;
+  }
 }
 
 class SessionNotifier extends StateNotifier<SessionState> {
   final StorageService _storage;
-  SessionNotifier(this._storage) : super(const SessionState(isGuest: false)) {
+
+  SessionNotifier(this._storage)
+      : super(
+          const SessionState(
+            isGuest: false,
+          ),
+        ) {
     _load();
   }
 
   Future<void> _load() async {
     final isGuest = await _storage.isGuestSession();
-    final name = await _storage.getUserName();
-    state = SessionState(isGuest: isGuest, userName: name);
+    final userId = await _storage.getUserId();
+    final userName = await _storage.getUserName();
+
+    state = SessionState(
+      isGuest: isGuest,
+      userId: userId,
+      userName: userName,
+    );
   }
 
   Future<void> continueAsGuest() async {
     await _storage.setGuestSession(true);
-    state = const SessionState(isGuest: true);
+
+    state = const SessionState(
+      isGuest: true,
+    );
+  }
+
+  Future<void> signIn({
+    required int userId,
+    required String userName,
+  }) async {
+    await _storage.setGuestSession(false);
+    await _storage.saveUserId(userId);
+    await _storage.saveUserName(userName);
+
+    state = SessionState(
+      isGuest: false,
+      userId: userId,
+      userName: userName,
+    );
+  }
+
+  Future<void> signOut() async {
+    await _storage.clearSession();
+
+    state = const SessionState(
+      isGuest: false,
+    );
   }
 }
 
-final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>((ref) {
-  return SessionNotifier(ref.watch(storageServiceProvider));
+final sessionProvider =
+    StateNotifierProvider<SessionNotifier, SessionState>((ref) {
+  return SessionNotifier(
+    ref.watch(storageServiceProvider),
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -138,6 +192,86 @@ final safetyCheckProvider = FutureProvider.autoDispose<SafetyResult>((ref) async
   final api = ref.watch(apiServiceProvider);
   return api.checkInteractions();
 });
+
+// ---------------------------------------------------------------------------
+// Theme selection - persisted locally.
+// ---------------------------------------------------------------------------
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final StorageService _storage;
+
+  ThemeModeNotifier(this._storage)
+      : super(ThemeMode.system) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final savedMode =
+        await _storage.getThemeMode();
+
+    if (savedMode == null) return;
+
+    switch (savedMode) {
+      case 'light':
+        state = ThemeMode.light;
+        break;
+
+      case 'dark':
+        state = ThemeMode.dark;
+        break;
+
+      default:
+        state = ThemeMode.system;
+    }
+  }
+
+  Future<void> setThemeMode(
+    ThemeMode mode,
+  ) async {
+    state = mode;
+
+    await _storage.saveThemeMode(
+      mode.name,
+    );
+  }
+Future<void> toggle() async {
+  if (state == ThemeMode.dark) {
+    await setThemeMode(
+      ThemeMode.light,
+    );
+  } else {
+    await setThemeMode(
+      ThemeMode.dark,
+    );
+  }
+}
+
+  Future<void> toggleTheme() async {
+    if (state == ThemeMode.dark) {
+      await setThemeMode(
+        ThemeMode.light,
+      );
+    } else {
+      await setThemeMode(
+        ThemeMode.dark,
+      );
+    }
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<
+        ThemeModeNotifier,
+        ThemeMode
+    >(
+  (ref) {
+    return ThemeModeNotifier(
+      ref.watch(
+        storageServiceProvider,
+      ),
+    );
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Misc.
