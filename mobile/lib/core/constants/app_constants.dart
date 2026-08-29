@@ -10,20 +10,12 @@ class AppConstants {
   static const String appName = 'Swasthya Seva';
   static const String appTagline = 'Verify. Understand. Stay Safe.';
 
-  /// Base URL of the FastAPI backend.
-  ///
-  /// This is intentionally the ONLY place the backend host is configured.
-  /// For a physical device on the same network as your dev machine, replace
-  /// 10.0.2.2 (Android emulator's alias for host localhost) with your
-  /// machine's LAN IP, e.g. http://192.168.1.42:8000
-  static const String apiBaseUrl = 'http://127.0.0.1:8000';
+  /// Base URL of the deployed FastAPI backend.
+  static const String apiBaseUrl = 'https://swasthya-seva-api.onrender.com';
 
   static const Duration apiTimeout = Duration(seconds: 20);
 
-  /// While the backend team wires up the real endpoints, the frontend runs
-  /// entirely against [MockDataService] so the demo works end-to-end today.
-  /// Flip this to `false` once the FastAPI backend + DB are reachable -
-  /// no screen code needs to change, only this flag.
+  /// Set to false to use the deployed FastAPI backend.
   static const bool useMockData = false;
 
   static const Duration splashDuration = Duration(seconds: 2);
