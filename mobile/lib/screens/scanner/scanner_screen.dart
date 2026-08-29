@@ -47,8 +47,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         MaterialPageRoute(builder: (_) => IdentificationScreen(medicine: medicine)),
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = 'Something went wrong while identifying this medicine. Please try again.';
+        _error = e.toString();
         _isProcessing = false;
       });
     }
